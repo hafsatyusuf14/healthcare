@@ -38,8 +38,10 @@ export const AppointmentForm = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Validation schema for the form
   const AppointmentFormValidation = getAppointmentSchema(type);
 
+  // React Hook Form setup
   const form = useForm<z.infer<typeof AppointmentFormValidation>>({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
@@ -53,6 +55,7 @@ export const AppointmentForm = ({
     },
   });
 
+  // Function to handle form submission
   const onSubmit = async (
     values: z.infer<typeof AppointmentFormValidation>
   ) => {
@@ -72,6 +75,7 @@ export const AppointmentForm = ({
 
     try {
       if (type === "create" && patientId) {
+        // Creating a new appointment
         const appointment = {
           userId,
           patient: patientId,
@@ -91,6 +95,7 @@ export const AppointmentForm = ({
           );
         }
       } else {
+        // Updating an existing appointment
         const appointmentToUpdate = {
           userId,
           appointmentId: appointment?.$id!,
@@ -101,6 +106,7 @@ export const AppointmentForm = ({
             cancellationReason: values.cancellationReason,
           },
           type,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Ensure timeZone is included
         };
 
         const updatedAppointment = await updateAppointment(appointmentToUpdate);
@@ -116,6 +122,7 @@ export const AppointmentForm = ({
     setIsLoading(false);
   };
 
+  // Determine button label based on the form type
   let buttonLabel;
   switch (type) {
     case "cancel":
@@ -125,9 +132,10 @@ export const AppointmentForm = ({
       buttonLabel = "Schedule Appointment";
       break;
     default:
-      buttonLabel = "Submit Apppointment";
+      buttonLabel = "Submit Appointment";
   }
 
+  // JSX structure of the form
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-6">
@@ -142,6 +150,7 @@ export const AppointmentForm = ({
 
         {type !== "cancel" && (
           <>
+            {/* Doctor Selection Field */}
             <CustomFormField
               fieldType={FormFieldType.SELECT}
               control={form.control}
@@ -165,6 +174,7 @@ export const AppointmentForm = ({
               ))}
             </CustomFormField>
 
+            {/* Appointment Date Picker */}
             <CustomFormField
               fieldType={FormFieldType.DATE_PICKER}
               control={form.control}
@@ -175,14 +185,17 @@ export const AppointmentForm = ({
             />
 
             <div
-              className={`flex flex-col gap-6  ${type === "create" && "xl:flex-row"}`}
+              className={`flex flex-col gap-6  ${
+                type === "create" && "xl:flex-row"
+              }`}
             >
+              {/* Reason and Notes Fields */}
               <CustomFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
                 name="reason"
                 label="Appointment reason"
-                placeholder="Annual montly check-up"
+                placeholder="Annual monthly check-up"
                 disabled={type === "schedule"}
               />
 
@@ -198,6 +211,7 @@ export const AppointmentForm = ({
           </>
         )}
 
+        {/* Cancellation Reason Field */}
         {type === "cancel" && (
           <CustomFormField
             fieldType={FormFieldType.TEXTAREA}
@@ -208,9 +222,12 @@ export const AppointmentForm = ({
           />
         )}
 
+        {/* Submit Button */}
         <SubmitButton
           isLoading={isLoading}
-          className={`${type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"} w-full`}
+          className={`${
+            type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"
+          } w-full`}
         >
           {buttonLabel}
         </SubmitButton>
